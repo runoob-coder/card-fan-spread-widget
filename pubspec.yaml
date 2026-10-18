@@ -1,0 +1,66 @@
+name: card_fan_spread
+description: "A Flutter card component that reproduces magician deck spreads: table spread, fan, reverse fan, the cardistry S fan and the two-hand fan, with an optional double-tier offset (giant fan) and a movable fan pivot, all with per-card cascading animation."
+version: 1.0.0
+homepage: https://runoob-coder.github.io/card-fan-spread-widget/
+repository: https://github.com/runoob-coder/card-fan-spread-widget
+issue_tracker: https://github.com/runoob-coder/card-fan-spread-widget/issues
+documentation: https://github.com/runoob-coder/card-fan-spread-widget
+topics:
+  - cards
+  - card-fan
+  - cardistry
+  - animation
+  - widget
+  - ui
+screenshots:
+  - description: "Fan (left to right)"
+    path: screenshots/fan.png
+  - description: "Reverse fan (right to left)"
+    path: screenshots/reverse-fan.png
+  - description: "Two-hand fan (one hand holds each half, each fanning outwards)"
+    path: screenshots/two-hand-fan.png
+  - description: "Giant fan (fan with double-tier offset)"
+    path: screenshots/giant-fan.png
+  - description: "S fan (cardistry: the packet bends into an S)"
+    path: screenshots/s-fan.png
+  - description: "Off-axis fan (pivot at the left card edge)"
+    path: screenshots/fan-pivot-left.png
+  - description: "Hanging fan (pivot sunk below the card edge)"
+    path: screenshots/fan-pivot-drop.png
+  - description: "Fan (card faces)"
+    path: screenshots/fan-face.png
+  - description: "Two-hand fan (card faces)"
+    path: screenshots/two-hand-fan-face.png
+  - description: "S fan (card faces)"
+    path: screenshots/s-fan-face.png
+  - description: "Table spread (dealer style)"
+    path: screenshots/table-spread.png
+  - description: "Table spread (card faces)"
+    path: screenshots/table-spread-face.png
+platforms:
+  android:
+  ios:
+  web:
+  windows:
+  macos:
+  linux:
+
+environment:
+  sdk: ^3.13.5
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The package itself ships no assets or fonts — card images are supplied
+# by the caller (one card back plus optional card faces).
+flutter:

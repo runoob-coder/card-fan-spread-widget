@@ -1,0 +1,33 @@
+name: example
+description: "card_fan_spread 的完整功能演示：展牌 / 开扇 / 反开扇（含双层错落 / 大扇）。"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^2.0.0
+  # Material 组件已迁到独立包 package:material_ui（自带 cupertino_ui）。
+  material_ui: ^1.6.0
+  intl: any
+  shared_preferences: ^2.3.0
+  url_launcher: ^6.3.1
+  card_fan_spread:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/back/
+    - assets/rider_cards/
