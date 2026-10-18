@@ -23,9 +23,10 @@
 
 Language: [English](README.md) | 中文
 
-| [![展牌][table-spread-img]][preview] | [![开扇][fan-img]][preview] | [![反开扇][reverse-fan-img]][preview] | [![双手开扇][two-hand-fan-img]][preview] | [![大扇（开扇 + 双层错落）][giant-fan-img]][preview] | [![S 扇][s-fan-img]][preview] | [![偏轴开扇（枢轴贴在左边缘）][fan-pivot-left-img]][preview] | [![垂挂开扇（枢轴沉到牌边下方）][fan-pivot-drop-img]][preview] |
-|---------------------------------------------------------------|--------------------------------------------------|--------------------------------------------------------|------------------------------------------|--------------------------------------------------|------------------------------------------|------------------------------------------|------------------------------------------|
-| [![展牌（牌面）][table-spread-face-img]][preview] | [![开扇（牌面）][fan-face-img]][preview] | | [![双手开扇（牌面）][two-hand-fan-face-img]][preview] | | [![S 扇（牌面）][s-fan-face-img]][preview] | | |
+| [![开扇][fan-img]][preview] | [![反开扇][reverse-fan-img]][preview] | [![开扇（牌面）][fan-face-img]][preview] | [![偏轴开扇（枢轴贴在左边缘）][fan-pivot-left-img]][preview] |
+|---------------------------------------------------------------|--------------------------------------------------|--------------------------------------------------------|------------------------------------------|
+| [![大扇（开扇 + 双层错落）][giant-fan-img]][preview] | [![垂挂开扇（枢轴沉到牌边下方）][fan-pivot-drop-img]][preview] | [![双手开扇（牌面）][two-hand-fan-face-img]][preview] | [![双手开扇][two-hand-fan-img]][preview] |
+| [![展牌][table-spread-img]][preview] | [![展牌（牌面）][table-spread-face-img]][preview] | [![S 扇][s-fan-img]][preview] | [![S 扇（牌面）][s-fan-face-img]][preview] |
 
 ## ✨ 功能特性
 

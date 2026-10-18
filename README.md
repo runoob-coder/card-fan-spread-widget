@@ -41,9 +41,10 @@ same deck can fan off-axis or hang from a point below the cards.
 
 Language: English | [中文](https://github.com/runoob-coder/card-fan-spread-widget/blob/main/README_CN.md)
 
-| [![Table Spread][table-spread-img]][preview] | [![Fan][fan-img]][preview] | [![Reverse Fan][reverse-fan-img]][preview] | [![Two-hand fan][two-hand-fan-img]][preview] | [![Giant fan (fan + double-tier offset)][giant-fan-img]][preview] | [![S fan][s-fan-img]][preview] | [![Off-axis fan (pivot at the left edge)][fan-pivot-left-img]][preview] | [![Hanging fan (pivot below the cards)][fan-pivot-drop-img]][preview] |
-|---------------------------------------------------------------|--------------------------------------------------|--------------------------------------------------------|------------------------------------------|--------------------------------------------------|------------------------------------------|------------------------------------------|------------------------------------------|
-| [![Table Spread (card faces)][table-spread-face-img]][preview] | [![Fan (card faces)][fan-face-img]][preview] | | [![Two-hand fan (card faces)][two-hand-fan-face-img]][preview] | | [![S fan (card faces)][s-fan-face-img]][preview] | | |
+| [![Fan][fan-img]][preview] | [![Reverse Fan][reverse-fan-img]][preview] | [![Fan (card faces)][fan-face-img]][preview] | [![Off-axis fan (pivot at the left edge)][fan-pivot-left-img]][preview] |
+|---------------------------------------------------------------|--------------------------------------------------|--------------------------------------------------------|------------------------------------------|
+| [![Giant fan (fan + double-tier offset)][giant-fan-img]][preview] | [![Hanging fan (pivot below the cards)][fan-pivot-drop-img]][preview] | [![Two-hand fan (card faces)][two-hand-fan-face-img]][preview] | [![Two-hand fan][two-hand-fan-img]][preview] |
+| [![Table Spread][table-spread-img]][preview] | [![Table Spread (card faces)][table-spread-face-img]][preview] | [![S fan][s-fan-img]][preview] | [![S fan (card faces)][s-fan-face-img]][preview] |
 
 ## ✨ Features
 
