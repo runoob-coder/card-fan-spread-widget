@@ -320,8 +320,6 @@ CardFanSpread(
 
 - ⭐ [Star on GitHub](https://github.com/runoob-coder/card-fan-spread-widget)
 
-## ☕️ [请我喝杯咖啡](https://www.noob-coder.com/buy-me-a-coffee)
-
 ## [☕️ 请我喝奶茶](https://www.noob-coder.com/buy-me-a-coffee)
 
 <table>
