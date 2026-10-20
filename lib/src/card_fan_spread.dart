@@ -83,6 +83,7 @@ enum FanSpreadMode {
 /// 双手开扇另封顶 [kMaxTwoHandFanAngle]（超出部分由布局钳掉，
 /// 构造时只校验到这里）。
 const double kMinFanAngle = 0;
+/// 开扇 / 反开扇的 `fanAngle` 上限（360°，完整取值范围见上方说明）。
 const double kMaxFanAngle = 360;
 
 /// S 扇（[FanSpreadMode.sFan]）的 `fanAngle` 上限（角度制）。
@@ -127,6 +128,7 @@ const double kMaxFanPivotX = 1;
 /// 6% 牌高处——拇指捏住扇骨的位置）。下界 -0.5 = 牌面中点，
 /// 上界 1.0 = 牌边下方一整张牌高处。
 const double kMinFanPivotLift = -0.5;
+/// 枢轴沉深上限（牌边下方一整张牌高，取值范围见上方说明）。
 const double kMaxFanPivotLift = 1.0;
 
 /// [CardFanSpread.fanPivotX] 的默认值：牌边中心。
@@ -164,6 +166,12 @@ const Color kCardBlankColor = Color(0xFFFFFFFF);
 ///（例如「缩略预览 + 主视图」）：控制命令作用于全部绑定的组件，
 /// [progress] / [isAnimating] / [isOpened] 读取最近绑定的那一个。
 class CardFanSpreadController extends ChangeNotifier {
+  /// 创建一个动画控制器。
+  ///
+  /// 未绑定到任何 [CardFanSpread] 时，所有读取类 getter
+  /// （[progress] / [isAnimating] / [isOpened]）都返回「收拢」状态。
+  CardFanSpreadController();
+
   /// 已绑定的动画（LinkedHashSet 保持绑定顺序，最后一个为「主」组件）。
   final Set<AnimationController> _animations = <AnimationController>{};
 
@@ -317,6 +325,12 @@ enum SpreadDirection {
 /// 等包裹，或放在普通盒子布局里。在 `Row` 这类提供无界宽度的父组件中
 /// 直接使用时，会退回内置的固定尺寸（400×600）以保证不崩溃。
 class CardFanSpread extends StatefulWidget {
+  /// 创建一个纸牌展开组件。
+  ///
+  /// 牌背图 [cardBack] 与可选牌面图 [cardFaces] 由调用方提供（见类级说明）。
+  /// 其余参数控制布局（[mode] / [direction]）、扇角（[fanAngle]）、枢轴
+  /// （[fanPivotX] / [fanPivotLift]）、双层错落（[fanTierRatio]）与动画
+  /// （[duration] / [curve] / [stagger] / [autoPlay]）。
   const CardFanSpread({
     super.key,
     this.cardBack,
