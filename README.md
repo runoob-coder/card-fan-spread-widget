@@ -391,6 +391,20 @@ the budget above keeps the peak in check.
   and are used here for demonstration purposes only. The package itself ships no
   assets — card images are always supplied by the caller.
 
+## 📄 License
+
+This package is **dual-licensed**:
+
+- **MIT License** (see [`LICENSE`](LICENSE)) — covers all uses **except** magic-related commercial activities.
+- **Commercial License for magic-related activities** (see
+  [`LICENSE-COMMERCIAL`](LICENSE-COMMERCIAL)) — any commercial activity involving
+  magic, conjuring, illusion, cardistry or other magic-related commercial endeavors
+  (including but not limited to the sale, promotion, or monetization of magic
+  performances, magic products, or magic services) requires prior written
+  permission from the copyright holder.
+
+For everything outside the magic commercial scope, the MIT License applies.
+
 ## 💛 Support
 
 If `card_fan_spread` helps you build better UIs, please consider supporting it.  
