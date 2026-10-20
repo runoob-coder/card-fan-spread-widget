@@ -1,6 +1,6 @@
 name: card_fan_spread
-description: "A Flutter card component that reproduces magician deck spreads: table spread, fan, reverse fan, the cardistry S fan and the two-hand fan, with an optional double-tier offset (giant fan) and a movable fan pivot, all with per-card cascading animation."
-version: 1.0.0
+description: "Flutter widget reproducing magician card spreads (fan, S fan, two-hand fan, table spread) with cascading animation and a movable pivot."
+version: 1.0.1
 homepage: https://runoob-coder.github.io/card-fan-spread-widget/
 repository: https://github.com/runoob-coder/card-fan-spread-widget
 issue_tracker: https://github.com/runoob-coder/card-fan-spread-widget/issues
@@ -28,14 +28,10 @@ screenshots:
     path: screenshots/fan-pivot-drop.png
   - description: "Fan (card faces)"
     path: screenshots/fan-face.png
-  - description: "Two-hand fan (card faces)"
-    path: screenshots/two-hand-fan-face.png
   - description: "S fan (card faces)"
     path: screenshots/s-fan-face.png
   - description: "Table spread (dealer style)"
     path: screenshots/table-spread.png
-  - description: "Table spread (card faces)"
-    path: screenshots/table-spread-face.png
 platforms:
   android:
   ios:
