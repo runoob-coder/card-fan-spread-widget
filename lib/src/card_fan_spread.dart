@@ -83,6 +83,7 @@ enum FanSpreadMode {
 /// 双手开扇另封顶 [kMaxTwoHandFanAngle]（超出部分由布局钳掉，
 /// 构造时只校验到这里）。
 const double kMinFanAngle = 0;
+
 /// 开扇 / 反开扇的 `fanAngle` 上限（360°，完整取值范围见上方说明）。
 const double kMaxFanAngle = 360;
 
@@ -128,6 +129,7 @@ const double kMaxFanPivotX = 1;
 /// 6% 牌高处——拇指捏住扇骨的位置）。下界 -0.5 = 牌面中点，
 /// 上界 1.0 = 牌边下方一整张牌高处。
 const double kMinFanPivotLift = -0.5;
+
 /// 枢轴沉深上限（牌边下方一整张牌高，取值范围见上方说明）。
 const double kMaxFanPivotLift = 1.0;
 
