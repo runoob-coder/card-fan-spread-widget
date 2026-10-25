@@ -1,3 +1,7 @@
+## 1.0.1
+
+- 📝 **Docs**: improved the documentation.
+
 ## 1.0.0
 
 - Four spreading styles — table spread, fan, S fan and two-hand fan — sharing a

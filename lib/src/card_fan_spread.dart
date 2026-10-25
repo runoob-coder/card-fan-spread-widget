@@ -602,14 +602,8 @@ class _CardFanSpreadState extends State<CardFanSpread>
   /// 上次解析图片时使用的配置；dpr / locale 等变化时需要全部失效重解析。
   ImageConfiguration? _imageConfig;
 
-  /// 当前**生效**的方向。
-  ///
-  /// 初始跟 [CardFanSpread.direction]；收拢态被往另一侧拖时，手势会把生效方向
-  /// 翻过去，同时通过 [CardFanSpread.onDirectionChanged] 通知调用方。
-  ///
-  /// 没有那个回调时组件自己翻：方向是纯受控参数，调用方不接管就意味着建议无处
-  /// 可去，收拢态往另一侧拖会被钳在收拢角 / 收拢进度上——手感就是「拖不动、
-  /// 改不了方向」。
+  /// 当前**生效**的方向：初始跟 [CardFanSpread.direction]，收拢态被往另一侧拖时
+  /// 由手势翻过去（组件自己翻的理由见 [CardFanSpread.onDirectionChanged]）。
   late SpreadDirection _effectiveDirection = widget.direction;
 
   /// 最近一次 build 算出的布局，供「拖动最顶的牌」做命中测试。
@@ -622,24 +616,16 @@ class _CardFanSpreadState extends State<CardFanSpread>
 
   /// 起拖时「最顶那张牌」的枢轴（像素），指针角度绕它测量。
   ///
-  /// 必须**冻结**：S 扇的顶牌枢轴沿 S 形脊线排开，开扇角一变它就跟着往前挪
-  /// （几十到上百像素），若每帧都拿新枢轴去量同一个手指位置，会凭空算出巨大的
-  /// 角度增量、拖动直接失控。开扇 / 反开扇的枢轴恒为 [FanSpreadLayout.origin]、
-  /// 双手开扇的枢轴是**那只手**的握点（见 [FanSpreadLayout.pivotOffsets]）：两者
-  /// 在拖动过程中都不动，冻结与实时取值完全等价。
+  /// 必须**冻结**：S 扇的顶牌枢轴会随开扇角沿脊线往前挪（几十到上百像素），
+  /// 每帧拿新枢轴去量同一个手指位置会凭空算出巨大增量、拖动直接失控。
   Offset? _dragPivot;
 
-  /// 起拖时算好的「指针转 1° → 开扇角变多少度」，整个拖动过程保持不变。
-  ///
-  /// 在起拖时算而不是每帧算：卡牌尺寸会随布局一起被重新缩放（S 扇尤其如此），
-  /// 每帧取新值会让手感忽快忽慢。
+  /// 起拖时算好的「指针转 1° → 开扇角变多少度」，整个拖动过程保持不变：
+  /// 牌尺寸会随布局重新缩放（S 扇尤其如此），每帧取新值会让手感忽快忽慢。
   double _dragGain = 2;
 
-  /// 起拖时算好的「手指往哪边转是开扇」：+1 = 顺时针（指针角度变大）开扇，
-  /// −1 = 逆时针开扇。整个拖动过程保持不变。
-  ///
-  /// 同样在起拖时定：双手开扇的左扇顶牌在摆幅跨过拐点时**方向会翻**，每帧
-  /// 重新求值会让手指停在原地、扇面自己来回弹。
+  /// 起拖时算好的「手指往哪边转是开扇」（+1 顺时针 / −1 逆时针），全程不变：
+  /// 双手开扇左扇的符号在拐点会翻，每帧重新求值会让扇面自己来回弹。
   double _dragSign = 1;
 
   /// 当前模式下 `fanAngle` 的上限：S 扇能卷过一整圈到 [kMaxSFanAngle]，
@@ -971,7 +957,6 @@ class _CardFanSpreadState extends State<CardFanSpread>
           direction: _effectiveDirection,
         );
         _ensureSprites(context, layout);
-        // 缓存布局供手势命中测试使用（触摸 → 逆变换 → 判断是否落在某张牌上）。
         _lastLayout = layout;
         final onFanAngleChanged = widget.onFanAngleChanged;
         // 牌区自己是一层重绘边界：动画每帧只需重绘这块画布，
@@ -1171,10 +1156,8 @@ class _CardFanSpreadState extends State<CardFanSpread>
     return -1;
   }
 
-  /// 触摸点是否落在第 [i] 张牌上。
-  ///
-  /// 把触摸点逆变换到牌的局部坐标系再判断（牌的当前位置由动画进度决定，
-  /// 与画家共用 [CardSpreadLayout.cardProgressAt]，保证判定与画面一致）。
+  /// 触摸点是否落在第 [i] 张牌上：把触摸点逆变换到牌的局部坐标系再判断
+  ///（与画家共用 [CardSpreadLayout.cardProgressAt]，保证判定与画面一致）。
   bool _hitCard(Offset position, FanSpreadLayout fan, int i) {
     final p = fan.cardProgressAt(
       i,
@@ -1185,8 +1168,7 @@ class _CardFanSpreadState extends State<CardFanSpread>
     final angle = fan.targetAngles[i] * p;
     // 双层错落的外层牌沿长轴推出了 tierOffsets[i]，逆变换时要一并加回来。
     final tier = fan.tierOffsets[i] * p;
-    // 这张牌自己的枢轴（S 扇沿脊线挪动过、双手开扇是两只手的位置），
-    // 逆变换同样要减掉——和画家用同一套（是否随进度长出来见 layout）。
+    // 逆变换要减掉这张牌自己的枢轴（与画家用同一套，见 layout.pivotFollowsProgress）。
     final pivot =
         fan.origin + fan.pivotOffsets[i] * (fan.pivotFollowsProgress ? p : 1.0);
     final dx = position.dx - pivot.dx;
@@ -1195,7 +1177,7 @@ class _CardFanSpreadState extends State<CardFanSpread>
     final sin = math.sin(-angle);
     final lx = dx * cos - dy * sin + fan.pivotOffset.dx;
     final ly = dx * sin + dy * cos + fan.pivotOffset.dy + tier;
-    const slop = 8.0; // 触摸容差
+    const slop = 8.0;
     return lx >= -slop &&
         lx <= fan.cardWidth + slop &&
         ly >= -slop &&
@@ -1226,10 +1208,7 @@ class _CardFanSpreadState extends State<CardFanSpread>
 
   // ---------------- 展牌：拖动最顶的牌跟手开合 ----------------
 
-  /// 触摸点是否落在展牌「最顶的那张牌」上。
-  ///
-  /// 与画家共用「中心 = lerp(收拢位置, 最终位置, p)、旋转 = lerp(初始角, 目标角, p)」
-  /// 这套变换，只是反过来用（把触摸点旋转回牌的局部坐标系再判断）。
+  /// 触摸点是否落在展牌「最顶的那张牌」上：与画家共用同一套变换，只是反过来用。
   bool _hitTopTableCard(Offset position, TableSpreadLayout table) {
     final i = table.drawOrder.last;
     final p = table.cardProgressAt(
@@ -1249,7 +1228,7 @@ class _CardFanSpreadState extends State<CardFanSpread>
     final sin = math.sin(-angle);
     final lx = dx * cos - dy * sin;
     final ly = dx * sin + dy * cos;
-    const slop = 8.0; // 触摸容差
+    const slop = 8.0;
     final halfW = table.cardWidth / 2;
     final halfH = table.cardHeight / 2;
     return lx >= -halfW - slop &&
@@ -1291,7 +1270,6 @@ class _CardFanSpreadState extends State<CardFanSpread>
     // 手指继续往原方向走就继续摊开，往回收就收拢。
     final sign = _dragOpenDx == 0 || axis.dx * _dragOpenDx >= 0 ? 1.0 : -1.0;
     final fraction = sign * projected / (span * span);
-    // 手指位移在这条轴上的投影占整段行程的比例，就是顶牌该走到的进度。
     final cardProgress = (start + fraction).clamp(0.0, 1.0);
     _seekProgress(_progressForCardProgress(table, i, cardProgress));
   }
@@ -1317,9 +1295,7 @@ class _CardFanSpreadState extends State<CardFanSpread>
   }
 
   /// 换向：把**生效方向**翻过去，并通知调用方（有回调的话）。
-  ///
-  /// 生效方向必须先翻：没有 [CardFanSpread.onDirectionChanged] 时调用方不接管，
-  /// 建议就无处可去，收拢态往另一侧拖会被钳在临界值上完全没反应。
+  /// 生效方向必须先翻的理由见 [CardFanSpread.onDirectionChanged]。
   void _applyDirection(SpreadDirection desired) {
     _effectiveDirection = desired;
     widget.onDirectionChanged?.call(desired);
@@ -1333,7 +1309,7 @@ class _CardFanSpreadState extends State<CardFanSpread>
   /// 1. 起拖时画面收拢（`_dragStartFanCollapsed`，进度 0 或角度本就是收拢角）：
   ///    第一次有效转向就定方向；
   /// 2. 张开的扇被往里拖到 0° 之后，手指继续往同侧推（[rawAngle] 越过下限）。
-  ///    没有这条，拖到 0° 再推只会被 clamp 一直按在 0°，手感就是「卡住」。
+  ///    没有这条，拖到 0° 再推只会被 clamp 一直按在 0°。
   ///
   /// 停在 0° 上不再推的人不会误翻（情形 2 要求 [rawAngle] 真的越过下限）；
   /// 一次拖动最多换一次向。
@@ -1403,7 +1379,6 @@ class _CardFanSpreadState extends State<CardFanSpread>
     if (controller != null) {
       controller.seekTo(value);
     } else {
-      // 先 stop 再赋值：正在跑的动画会在下一帧把 value 覆盖回去。
       _animation.stop();
       _animation.value = value;
     }
@@ -1414,7 +1389,6 @@ class _CardFanSpreadState extends State<CardFanSpread>
     ValueChanged<double> onFanAngleChanged,
   ) {
     final layout = _lastLayout;
-    // 展牌模式不使用 fanAngle；触摸没落在可抓取的牌上也不响应。
     if (layout is! FanSpreadLayout) return;
     final i = _hitTopCard(details.localPosition, layout);
     if (i < 0) return;
@@ -1424,9 +1398,8 @@ class _CardFanSpreadState extends State<CardFanSpread>
     if (!_animation.isCompleted) {
       _animation.forward();
     }
-    // 顶牌绕**自己的**枢轴转：S 扇的枢轴沿脊线排开过、双手开扇是那只手的
-    // 握点，都不在公共原点上，指针角度必须绕同一个点测，才和「牌跟着手指转」
-    // 对齐（其余模式两者等价）。
+    // 指针角度必须绕顶牌**自己的**枢轴测（S 扇沿脊线排开、双手开扇是手握点），
+    // 才和「牌跟着手指转」对齐。
     final pivot =
         layout.origin +
         layout.pivotOffsets[i] *
@@ -1492,8 +1465,7 @@ class _CardFanSpreadState extends State<CardFanSpread>
     _dragPointerAngle = pointer;
     final gain = _dragGain;
     final sign = _dragSign;
-    // 换向判定要用**未被钳制**的原始角度：拖到 0°（或上限）之后手指继续推，
-    // 不在这里放行就会被下面的 clamp 一直按在临界值上，表现为「卡住」。
+    // 换向判定要用**未被钳制**的原始角度，否则会被下面的 clamp 按在临界值上。
     if (_resolveFanDragDirection(
       layout,
       startFanAngle + sign * gain * _dragAngleDelta,
@@ -1609,8 +1581,6 @@ class _CardSpreadPainter extends CustomPainter {
 
   int get cardCount => layout.cardCount;
 
-  // 复用画笔，避免每帧为每张牌创建几十个对象。
-  //
   // 贴图画笔必须显式设置 filterQuality：默认的 low（纯双线性）在
   // 「旋转 / 分数尺寸缩放 / 大图缩小」时边缘会出现锯齿与摩尔纹。
   // medium（mipmap + 双线性）在这些场景下边缘过渡最平滑
@@ -1663,8 +1633,6 @@ class _CardSpreadPainter extends CustomPainter {
       fan.cardHeight / 2 - fan.pivotOffset.dy,
     );
     final mix = faceMix.value;
-    // 两个过渡（牌背↔牌面、旧牌背→新牌背）进行中都不能跳过重合的牌：
-    // 那两层是半透明叠上去的，少画一层会改变最终混合结果。
     final crossFading =
         (mix > 0 && mix < 1) ||
         (backCrossFade.value > 0 && backCrossFade.value < 1);
@@ -1805,8 +1773,7 @@ class _CardSpreadPainter extends CustomPainter {
       return;
     }
 
-    // 牌背层：换牌背时从旧牌背交叉溶解到新牌背；新牌背还没解码好时继续画旧的，
-    // 免得每张牌先闪一下空白白牌。
+    // 牌背层：换牌背时从旧牌背交叉溶解到新牌背（见 [_backFadePending]）。
     final outgoing = previousBackImage;
     final backMix = backCrossFade.value;
     if (outgoing != null && !identical(outgoing, back)) {
@@ -1840,8 +1807,8 @@ class _CardSpreadPainter extends CustomPainter {
   /// [alpha] 是牌背 / 牌面交叉淡入淡出的强度，两级（纯净 / 带装饰）都按它绘制，
   /// 不能有任何一级被满不透明地画上去，否则重合的牌会跳过淡入淡出。
   ///
-  /// 装饰分两层叠加：先画纯净牌面，再把带阴影/描边的版本按 [decorAlpha]
-  /// 半透明地盖上去。这样装饰强度可以连续变化，不会突然出现或消失。
+  /// 装饰分两层叠加：先画纯净牌面，再把带阴影 / 描边的版本按 [decorAlpha]
+  /// 盖上去（强度连续变化的理由见 [cardDecorationAlpha]）。
   void _paintCardImage(
     Canvas canvas,
     Rect rect,
@@ -1901,8 +1868,6 @@ class _CardSpreadPainter extends CustomPainter {
       canvas.drawRRect(rrect.shift(kCardShadowOffset), _shadowPaint);
     }
     if (image == null) {
-      // 没有任何可用牌图（未传 / 还没解码好 / 解码失败）：
-      // 按一张背面朝上的空白白牌绘制。
       // 注意不能拿 [_tintPaint] / [_opaquePaint] 填充——那个画笔的颜色是默认
       // 的纯黑（它只用于贴图，颜色被忽略），填充矩形会让整叠牌变成黑块。
       _blankPaint.color = kCardBlankColor.withValues(alpha: alpha);
@@ -1932,17 +1897,14 @@ class _CardSpreadPainter extends CustomPainter {
     }
   }
 
-  /// 精灵图的源区域（整张）。Rect 很轻量，每帧每张牌各创建一个。
+  /// 精灵图的源区域（恒为整张）；Rect 很轻量，每帧每张牌各创建一个。
   static Rect _srcOf(ui.Image image) =>
       Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
 
   /// 精灵图贴到画布上的目标矩形：把精灵里的**牌身**精确对齐到 [rect]。
   ///
-  /// 不能直接写 `rect.inflate(kCardSpritePadding)`：留白是合成时按
-  /// [kCardSpritePadding] 加的，而合成尺寸（量化 / 档位 / 尺寸还在变时的旧精灵）
-  /// 未必等于此刻布局给的牌尺寸，那样会把留白一起缩放、牌身画大或画小——
-  /// 精灵高大 15% 时牌就被画大 2%，差一倍时差 10%，首屏精灵陆续到位的过程里
-  /// 看起来就是纸牌忽大忽小。
+  /// 不能直接写 `rect.inflate(kCardSpritePadding)`：留白会被一起缩放、牌身就
+  /// 画大或画小了，理由与数据见 [CardSpriteCache.spriteCardSizes]。
   Rect _spriteDst(Rect rect, ui.Image source, ui.Image sprite) {
     final cardSize = spriteCardSizes[source];
     if (cardSize == null || cardSize.width <= 0 || cardSize.height <= 0) {

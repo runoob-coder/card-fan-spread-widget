@@ -165,10 +165,9 @@ sealed class CardSpreadLayout {
         pivotX: kDefaultFanPivotX,
         pivotLift: kDefaultFanPivotLift,
       ),
-      // 双手开扇：参数与开扇 / 反开扇一致（枢轴可调），但两扇在上下两端交叉
-      // 盖在一起，双层错落只会糊成一团，故忽略 fanTierRatio；每边的摆幅封顶
-      // kMaxTwoHandFanAngle（220°），超出部分在此钳掉——指纹用的也是钳后
-      // 的值，拖过 220° 不会触发无谓的重排。
+      // 双层错落对双手开扇只会糊成一团，故忽略；每边摆幅在此钳到
+      // kMaxTwoHandFanAngle（220°）——指纹用的也是钳后的值，拖过 220°
+      // 不会触发无谓的重排。
       FanSpreadMode.twoHandFan => FanSpreadLayout._(
         mode: mode,
         direction: direction,
@@ -195,11 +194,9 @@ typedef _Spine = ({List<Offset> pivots, List<double> angles});
 ///
 /// 普通开扇 / 反开扇的 [pivotOffsets] 恒为 0：所有牌钉在同一个点上，
 /// 只靠朝向角散开成圆扇，收拢态是公共原点上的**一叠**。S 扇的枢轴沿一条
-/// S 形脊线依次排开、牌垂直于脊线的切向朝外辐射，整叠牌因此摊成一条
-/// **竖立的 S 形牌带**（Cardistry 的 S Fan）。双手开扇则是左右手各捏一扇：
-/// [pivotOffsets] 是 ±d 两个手握点（见 [_twoHandFanHandSpread]）且**恒生效**
-/// （收拢态即**左右两叠**），朝向角分成左右两个半区——左手朝左扫开、右手朝右
-/// 扫开，两扇在上下两端交叉。
+/// S 形脊线排开（细节见 [_sFanSpine]），整叠摊成一条**竖立的 S 形牌带**
+///（Cardistry 的 S Fan）。双手开扇是 ±d 两个手握点、收拢态即**左右两叠**
+///（细节见 [_twoHandFanSpine]），朝向角分成左右两个半区。
 ///
 /// [tierRatio] 大于 0 时开启「双层错落」：奇数下标的牌沿自身长轴向外推出
 /// [tierOffsets]（模拟完美洗牌后两叠牌交错的状态），画面从单层扇形变成
@@ -288,9 +285,7 @@ class FanSpreadLayout extends CardSpreadLayout {
 
   /// 每张牌的枢轴相对 [origin] 的偏移（像素）。
   ///
-  /// [pivotFollowsProgress] 为 true 时按进度线性插值：收拢时（进度 0）所有牌
-  /// 都在 [origin] 上叠成一摞，展开后第 i 张牌的枢轴落在 `origin + pivotOffsets[i]`。
-  /// 为 false 时这个偏移**始终生效**：收拢时每张牌就已经待在自己的枢轴上。
+  /// 是否随进度「长出来」见 [pivotFollowsProgress]。
   ///
   /// 普通开扇 / 反开扇全为 `Offset.zero`；S 扇的枢轴沿 S 形脊线排开（随进度
   /// 从原点长出去）；双手开扇是 ±d 两个手握点（一直就在那里）。
@@ -371,10 +366,8 @@ class FanSpreadLayout extends CardSpreadLayout {
     double fanAngle,
   ) => switch (mode) {
     FanSpreadMode.sFan => _sFanSpine(direction, cardCount, fanAngle),
-    // 双手开扇的两只手本来就分居左右，方向只影响叠压与动画先后，
-    // 不改几何（见 [_drawOrderOf]）。
+    // 方向只影响叠压与动画先后，不改几何（见 [_drawOrderOf]）。
     FanSpreadMode.twoHandFan => _twoHandFanSpine(cardCount, fanAngle),
-    // 开扇：所有牌钉在同一个枢轴上，只靠朝向角散开。
     _ => _pointedFanSpine(direction, cardCount, fanAngle),
   };
 
@@ -434,26 +427,14 @@ class FanSpreadLayout extends CardSpreadLayout {
   static double _sFanStartAngle(double fanAngle) =>
       fanAngle * math.pi / 180 / 4;
 
-  /// S 扇（Cardistry 的 S Fan）。
-  ///
-  /// 与普通开扇「所有牌共用一个枢轴」不同：这里**牌的中心**沿一条 **S 形
-  /// 脊线**依次排开，牌垂直于脊线的切向朝外辐射（真实开扇里牌就是从捏牌线
-  /// 辐射出去的），于是整叠牌摊成一条 **S 形的牌带**。
-  ///
-  /// 之所以按「牌心在脊线上」而不是「枢轴在脊线上」：牌带的轮廓是由牌身堆出来
-  /// 的，对称与否要看牌心连线。枢轴钉在牌底边内侧（不在牌心），若直接把枢轴
-  /// 排在脊线上，整条牌带会偏向一侧，S 的两半就被推成一侧远一侧近——上碗比
-  /// 下碗大出将近一张牌长。按牌心排布后脊线本身就是对称的 S，牌带轮廓随之
-  /// 对称，上下两个碗一样大；捏牌线则自然偏在牌带中心线内侧，与真实持牌一致。
+  /// S 扇（Cardistry 的 S Fan）：与普通开扇「所有牌共用一个枢轴」不同，这里
+  /// **牌的中心**沿一条 **S 形脊线**依次排开，牌垂直于脊线的切向朝外辐射
+  ///（真实开扇里牌就是从捏牌线辐射出去的），整叠牌摊成一条 **S 形的牌带**。
+  /// 按牌心（而非枢轴）排布的理由见 [_sFanPivotToCenter]。
   ///
   /// 脊线由两段**曲率相反**的圆弧拼接而成：切向先从 φ0 转到 φ0 − Δ，
   /// 再转回 φ0。「转出去再转回来」正是 S 的来源——普通开扇的切向是单向扫过
-  /// 的，无论角度调多大都只会得到圆扇。
-  ///
-  /// 起点切向取 Δ/2，两段等长反向圆弧的**弦向**正好因此恒为竖直
-  /// （弦向 = φ0 − Δ/2）：整条 S 在画面里是竖立的，而不是斜着甚至躺倒的。
-  /// 又因为首尾两张牌垂直于脊线、朝向相同，牌带的总跨度正好等于脊线弦向，
-  /// 不会被扇形本身甩成斜的。
+  /// 的，无论角度调多大都只会得到圆扇。弦向恒为竖直的推导见 [_sFanStartAngle]。
   ///
   /// [fanAngle] = 0 时脊线长度归零、「垂直」也还没长出来，所有牌保持竖直，
   /// 整叠牌仍是一摞竖直重合的牌——与其它模式的「收拢」语义保持一致。
@@ -475,7 +456,6 @@ class FanSpreadLayout extends CardSpreadLayout {
     final pivots = <Offset>[];
     final angles = <double>[];
     for (var i = 0; i < cardCount; i++) {
-      // 按弧长取点：第 i 张牌在脊线上走过的距离 s = i·step。
       final s = i * step;
       // 脊线是两段曲率相反的圆弧，直接用圆弧解析式取点，不用步进积分：
       // 步进法在「跨拐点的那一步」会把整步都按同一段弧的曲率算，偶数张牌时
@@ -501,8 +481,7 @@ class FanSpreadLayout extends CardSpreadLayout {
               ) *
               _sFanRadius *
               (onFirstArc ? -1.0 : 1.0);
-      // 牌的中心排在脊线上（见 [_sFanSpine] 的说明），枢轴在牌底边内侧，
-      // 因此沿牌朝向反推 _sFanPivotToCenter 得到枢轴位置。
+      // 枢轴在牌底边内侧：沿牌朝向反推 _sFanPivotToCenter 得到枢轴位置。
       final angle = phi - math.pi / 2 * perpendicular;
       pivots.add(
         position -
@@ -534,29 +513,19 @@ class FanSpreadLayout extends CardSpreadLayout {
     return (pivots: pivots, angles: angles);
   }
 
-  /// 双手开扇：左右手各捏一扇，对称。
+  /// 双手开扇：整叠牌从中间分成两半，左半朝左扇开、右半朝右扇开，两只手分居
+  /// 公共原点两侧（见 [_twoHandFanHandSpread]），各自绕自己的手握点旋转，扇面
+  /// 在上下两端交叉。收拢即左右两叠、不会合并的理由见 [pivotFollowsProgress]。
   ///
-  /// 整叠牌从中间分成两半：前一半（左手）朝左扇开、后一半（右手）朝右扇开。
-  /// 两只手分居公共原点两侧（见 [_twoHandFanHandSpread]），各自绕自己的手握点
-  /// 旋转，扇面在上下两端交叉（每边 220° 时交叉 40°）——即魔术师双手各捏半叠
-  /// 牌同时展开的双手开扇。两只手的位置**始终生效**（[pivotFollowsProgress]
-  /// 为 false）：收拢（进度 0）时就是左右两叠，不会合并成一叠。
-  ///
-  /// [fanAngle] 是**每一边**的摆幅（与开扇 / 反开扇同义，但封顶
-  /// [kMaxTwoHandFanAngle]，由 `CardSpreadLayout.compute` 钳好后传入）：
-  /// 再大两扇就会互相盖住。0° 时摆幅为零，所有牌保持竖直重合（与其它模式的
-  /// 「收拢」语义一致）；摆幅长到 [_twoHandFanCenterKnee]（90°）时两扇的中心
-  /// 已经落在正外侧（左扇 −90°、右扇 +90°），此后只加宽、不再继续往外倒——
-  /// 于是任何 ≥90° 的摆幅都是**上下平分空间**的对称扇形，不会朝上歪。
+  /// [fanAngle] 是**每一边**的摆幅（已由 `CardSpreadLayout.compute` 钳到
+  /// [kMaxTwoHandFanAngle]）；摆幅过 90° 后的行为见 [_twoHandFanCenterKnee]。
   ///
   /// 偶数张牌时严格镜像对称：右扇第 j 张的朝向 = 左扇第（半边数 − 1 − j）张
   /// 的朝向取反（镜像把朝向角 θ 映射为 −θ），枢轴 ±d 也互为镜像。
   static _Spine _twoHandFanSpine(int cardCount, double fanAngle) {
     final degrees = fanAngle.clamp(kMinFanAngle, kMaxTwoHandFanAngle);
     final sweep = degrees * math.pi / 180;
-    // 中心方向：摆幅 ≤ [_twoHandFanCenterKnee] 时按比例从竖直转出去，之后固定
-    // 在正外侧（±90°）。关键在于**别一路线性长到 220°**——那样 140° 时中心才
-    // 57°，两扇朝上歪、下方空一大块；中心落在正外侧时扇面才是上下平分的。
+    // 中心方向转出到 [_twoHandFanCenterKnee] 为止，之后固定在正外侧（±90°）。
     final center = math.pi / 2 * math.min(1, degrees / _twoHandFanCenterKnee);
     final half = sweep / 2;
     final left = cardCount ~/ 2;
@@ -591,11 +560,9 @@ class FanSpreadLayout extends CardSpreadLayout {
     required double pivotX,
     required double pivotLift,
   }) {
-    // 双手开扇的两只手始终在各自位置上（收拢即左右两叠，不合并）；
-    // 其余模式的枢轴都是从收拢的那一叠里「长出来」的。
+    // 双手开扇的两只手始终在各自位置上（理由见 [pivotFollowsProgress]）。
     final pivotFollowsProgress = mode != FanSpreadMode.twoHandFan;
 
-    // 脊线：每张牌的枢轴（相对公共原点）与朝向角。
     final spine = _spineOf(mode, direction, cardCount, fanAngle);
 
     // 枢轴在牌内的归一化位置（牌高 = 1，原点在牌左上角，y 向下）：

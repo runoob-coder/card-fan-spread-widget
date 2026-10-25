@@ -16,8 +16,7 @@ const double kCardSpritePadding = 16;
 /// 偏移刻意偏向**左下**：展牌时右侧的牌压住左边的牌，
 /// 只有左下方向的投影会落在相邻牌的接缝和桌面上，右下方向的投影会被直接挡住。
 ///
-/// 多张牌重合时阴影会层层累积（52 层 14% 也能叠成黑框），
-/// 所以 [kCardShadowExtent] 之外的牌改用不带阴影的精灵（见 [_CardSpreadPainter]）。
+/// 重合时阴影会层层累积，贴到 [kCardShadowExtent] 以内的牌改用无阴影精灵。
 const Offset kCardShadowOffset = Offset(-1.2, 2.4);
 const double kCardShadowBlur = 5.0;
 const Color kCardShadowColor = Color(0x24000000); // ~14% 黑
@@ -217,9 +216,7 @@ class CardSpriteCache {
   /// 带阴影的精灵图。
   Map<ui.Image, ui.Image> get sprites => _sprites;
 
-  /// 不带阴影的精灵图（只有圆角、牌面与描边）。
-  ///
-  /// 相邻牌几乎重合时用这一套，避免多张牌的投影叠成黑边。
+  /// 不带阴影的精灵图（只有圆角、牌面与描边）；相邻牌重合时用，避免投影叠成黑边。
   Map<ui.Image, ui.Image> get flatSprites => _flatSprites;
 
   /// 每张精灵里「牌身」那块区域的逻辑尺寸（见 [_cardSizes]）。
@@ -253,20 +250,16 @@ class CardSpriteCache {
     if (_disposed || width <= 1 || height <= 1) return;
     _onReady = onReady;
     final sources = images.toList(growable: false);
-    // 尺寸按档位切换：牌尺寸会随布局连续变化（拖动开扇角度、窗口缩放、调牌数），
-    // 若每 4px 都重新合成，一次拖动就是上百次离屏渲染（52 张牌面时上千次）。
     // 只量化主维度（高）并按比例推导宽，保持宽高比；绘制时仍按精确尺寸缩放，
     // 误差不超过半个步长，配合 FilterQuality.medium 不可见。
     final spriteHeight = _targetHeight(height);
     _activeHeight = spriteHeight;
     final spriteWidth = spriteHeight * (width / height);
-    // 单份精灵的字节数（含阴影留白）；每种源图需要 2 份。
     final bytesPerSource =
         2 *
         (spriteWidth + kCardSpritePadding * 2) *
         (spriteHeight + kCardSpritePadding * 2) *
         4;
-    // 预算内可达到的 dpr：总量 ≈ sources × bytesPerSource × dpr²。
     final dprByBudget = sources.isEmpty
         ? dpr
         : math.sqrt(maxMemoryBytes / (bytesPerSource * sources.length));
@@ -364,9 +357,6 @@ class CardSpriteCache {
   }
 
   /// 让出一个事件循环回合（不占用时间，只是把控制权交还给引擎）。
-  ///
-  /// 返回的 Future 在下一个定时器回合完成；[dispose] 会撤掉这个计时器，
-  /// 所以销毁后不会有残留定时器。
   Future<void> _yield() {
     final completer = Completer<void>();
     _yieldTimer = Timer(Duration.zero, () {
@@ -385,9 +375,7 @@ class CardSpriteCache {
 
   /// 一批一批地合成，批与批之间**让出事件循环**。
   ///
-  /// 牌背 → 牌面切换时 52 张牌面一次性入队（106 次离屏渲染），若一口气排完，
-  /// 栅格队列被 `Picture.toImage` 塞满、帧排不进去，画面就是卡住；分批 + 让出
-  /// 之后，每批之间至少能插进一帧，切换过程始终是连续的。
+  /// 分批让出的理由见 [kSpriteMaxConcurrentSources]。
   /// 还没合成到的源图由画家走回退路径（clip + 贴图，样式与精灵一致），
   /// 精灵陆续到位后自动升级，不会出现空档。
   Future<void> _drainQueue() async {
@@ -412,7 +400,6 @@ class CardSpriteCache {
   }
 
   Future<void> _runJob(_SpriteJob job) async {
-    // 过期任务：尺寸又变了（generation 前进）或源图已被 evict。
     if (_disposed ||
         job.generation != _generation ||
         !_keys.containsKey(job.image)) {
@@ -451,8 +438,7 @@ class CardSpriteCache {
       }
       return;
     }
-    // 两个变体一起发布（见 [_SpriteJob]）：缺一个都不换，避免中间态下重合的牌
-    // 只剩装饰层、整叠变透明。
+    // 两个变体必须成对发布（理由见 [_SpriteJob]）。
     _sprites[job.image]?.dispose();
     _flatSprites[job.image]?.dispose();
     _sprites[job.image] = pair[0]!;
@@ -477,23 +463,19 @@ class CardSpriteCache {
     });
   }
 
-  /// 本次该合成的高度（逻辑像素）：放大立即换档、缩小滞回换档、其余复用。
-  ///
-  /// 牌尺寸连续变化时（拖动开扇角度、窗口缩放、调牌数），「每次变动都重新合成」
-  /// 会让一次拖动产生上百次离屏渲染；这里只在跨过档位时才换。
+  /// 本次该合成的高度（逻辑像素）：放大立即换档、缩小滞回换档、其余复用
+  ///（「只在跨过档位时才换」的理由见 [kSpriteSettleDelay]）。
   double _targetHeight(double height) {
     final active = _activeHeight;
     if (active <= 0) return _quantize(height);
     // 容差取半个步长：当前档位是就近量化来的，可能比实际牌高小最多半步，
     // 不把这个误差算进去的话「尺寸没变」也会被判成变大、白换一次档。
     if (height > active + kSpriteSizeStep / 2) {
-      // 变大：跳到阶梯上更高的一档（过采样，牌不会糊）。
       // 就近量化可能落回当前档位，所以这里必须先向上取档再量化。
       final rung = _ceilQuantize(_rungUp(height));
       return rung > active ? rung : active + kSpriteSizeStep;
     }
     if (height < active / _spriteShrinkRatio) {
-      // 明显变小：降档，把多占的显存还回去。
       return _quantize(height);
     }
     return active;
@@ -527,8 +509,7 @@ class CardSpriteCache {
 
   void dispose() {
     _disposed = true;
-    // 撤掉还没执行的换档请求与排队任务（否则 Timer 会在销毁后还触发一次，
-    // 测试里也会留下「A Timer is still pending」）。
+    // 撤掉还没执行的换档请求与排队任务（理由见 [_yieldTimer]）。
     _cancelPendingResize();
     _yieldTimer?.cancel();
     _yieldTimer = null;
@@ -586,8 +567,7 @@ Future<ui.Image> _render(
     )
     ..restore();
 
-  // 描边同样会随重叠张数累积：紧密重合时只保留牌面，轮廓交给最底层那张。
-  // 注意描边与阴影是解耦的：即使关掉阴影（透明色）也仍然保留描边。
+  // 描边与阴影解耦：即使关掉阴影（透明色）也仍然保留描边。
   if (withDecoration) {
     canvas.drawRRect(
       rrect,
