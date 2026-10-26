@@ -1,9 +1,23 @@
 name: Build & Deploy Flutter Web
 on:
   push:
-    branches: [main]
+    branches: [ master, main ]
+    paths:
+      - "example/**"
+      - "lib/**"
+      - "test/**"
+      - "analysis_options.yaml"
+      - "pubspec.yaml"
+      - ".github/workflows/deploy_web.yml"
   pull_request:
-    branches: [main]
+    branches: [ master, main ]
+    paths:
+      - "example/**"
+      - "lib/**"
+      - "test/**"
+      - "analysis_options.yaml"
+      - "pubspec.yaml"
+      - ".github/workflows/deploy_web.yml"
   workflow_dispatch:
 permissions:
   contents: write
