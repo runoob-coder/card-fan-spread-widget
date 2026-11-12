@@ -2,3 +2,5 @@ arb-dir: lib/l10n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
 output-class: AppLocalizations
+# @see https://github.com/flutter/flutter/issues/191072
+header: "// ignore_for_file: deprecated_member_use"
